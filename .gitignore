@@ -1,0 +1,17 @@
+# Fisiere compilate si build
+target/
+out/
+*.class
+*.war
+
+# Setari IntelliJ (nu le vrem pe net)
+.idea/
+*.iml
+*.iws
+
+# Fisiere de sistem
+.DS_Store
+Thumbs.db
+
+# Loguri
+*.log
