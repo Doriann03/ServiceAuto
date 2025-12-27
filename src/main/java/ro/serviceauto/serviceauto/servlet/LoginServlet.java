@@ -3,6 +3,7 @@ package ro.serviceauto.serviceauto.servlet;
 import ro.serviceauto.serviceauto.dao.ClientDAO;
 import ro.serviceauto.serviceauto.model.Client;
 import ro.serviceauto.serviceauto.util.PasswordUtil; // IMPORT IMPORTANT
+import ro.serviceauto.serviceauto.dao.IstoricDAO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -13,9 +14,11 @@ import java.io.IOException;
 public class LoginServlet extends HttpServlet {
 
     private ClientDAO clientDAO;
+    private IstoricDAO istoricDAO;
 
     public void init() {
         clientDAO = new ClientDAO();
+        istoricDAO = new IstoricDAO();
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -24,10 +27,10 @@ public class LoginServlet extends HttpServlet {
         String userOrEmail = request.getParameter("username"); // Poate fi si email
         String passPlain = request.getParameter("password");
 
-        // 1. CRIPTAM parola venita din formular
+        //CRIPTAM parola venita din formular
         String hashedPassword = PasswordUtil.hashPassword(passPlain);
 
-        // 2. Trimitem parola criptata la DAO
+        //Trimitem parola criptata la DAO
         Client client = clientDAO.authenticate(userOrEmail, hashedPassword);
 
         if (client != null) {
@@ -35,9 +38,14 @@ public class LoginServlet extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("user", client);
 
+            // Construim numele complet pentru log
+            String numeComplet = client.getNume() + " " + client.getPrenume();
+
             if ("Admin".equals(client.getTipUtilizator())) {
+                istoricDAO.logAdminAction(client.getIdc(), numeComplet, "LOGIN | Autentificare Admin reușită");
                 response.sendRedirect("dashboard_admin.jsp");
             } else {
+                // (Optional) Aici vom loga clientul mai tarziu cand ajungem la IstoricClient
                 response.sendRedirect("dashboard_client.jsp");
             }
         } else {
