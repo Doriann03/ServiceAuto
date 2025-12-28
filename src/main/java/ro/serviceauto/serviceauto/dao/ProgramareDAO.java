@@ -180,18 +180,43 @@ public class ProgramareDAO {
         return lista;
     }
 
-    public boolean deleteProgramare(int idProgramare) {
-        String sql = "DELETE FROM Programare WHERE IDP = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+    // Metoda DELETE cu tranzactie (Sterge Lucrare -> apoi Programare)
+    public boolean deleteProgramare(int idp) {
+        Connection conn = null;
+        PreparedStatement stmtDelLucrare = null;
+        PreparedStatement stmtDelProg = null;
 
-            stmt.setInt(1, idProgramare);
-            int rows = stmt.executeUpdate();
+        try {
+            conn = DatabaseConnection.getConnection();
+            conn.setAutoCommit(false); // 1. Oprim auto-commit (Start Tranzactie)
+
+            // PASUL A: Stergem Lucrarea asociata (daca exista)
+            // Aceasta este "copilul" care bloca stergerea
+            String sqlLucrare = "DELETE FROM Lucrare WHERE IDP = ?";
+            stmtDelLucrare = conn.prepareStatement(sqlLucrare);
+            stmtDelLucrare.setInt(1, idp);
+            stmtDelLucrare.executeUpdate();
+
+            // PASUL B: Stergem Programarea
+            String sqlProg = "DELETE FROM Programare WHERE IDP = ?";
+            stmtDelProg = conn.prepareStatement(sqlProg);
+            stmtDelProg.setInt(1, idp);
+            int rows = stmtDelProg.executeUpdate();
+
+            // 2. Salvam modificarile
+            conn.commit();
             return rows > 0;
 
         } catch (SQLException e) {
             e.printStackTrace();
+            // In caz de eroare, dam rollback (anulam tot)
+            try { if (conn != null) conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
             return false;
+        } finally {
+            // 3. Inchidem resursele manual
+            try { if (stmtDelLucrare != null) stmtDelLucrare.close(); } catch (SQLException e) {}
+            try { if (stmtDelProg != null) stmtDelProg.close(); } catch (SQLException e) {}
+            try { if (conn != null) { conn.setAutoCommit(true); conn.close(); } } catch (SQLException e) {}
         }
     }
 
