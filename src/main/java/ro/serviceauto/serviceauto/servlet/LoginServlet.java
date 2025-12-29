@@ -45,7 +45,7 @@ public class LoginServlet extends HttpServlet {
                 istoricDAO.logAdminAction(client.getIdc(), numeComplet, "LOGIN | Autentificare Admin reușită");
                 response.sendRedirect("dashboard_admin.jsp");
             } else {
-                // (Optional) Aici vom loga clientul mai tarziu cand ajungem la IstoricClient
+                istoricDAO.logClientAction(client.getIdc(), numeComplet, "LOGIN | Client autentificat");
                 response.sendRedirect("dashboard_client.jsp");
             }
         } else {

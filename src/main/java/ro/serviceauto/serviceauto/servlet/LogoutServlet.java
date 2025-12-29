@@ -16,23 +16,27 @@ public class LogoutServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         if (session != null) {
-            // 1. Luam userul INAINTE sa distrugem sesiunea, ca sa stim cine pleaca
+            // Luam userul INAINTE sa distrugem sesiunea, ca sa stim cine pleaca
             Client user = (Client) session.getAttribute("user");
 
-            // 2. LOGARE IN ISTORIC (Doar pentru Admini)
-            if (user != null && "Admin".equals(user.getTipUtilizator())) {
+            // LOGARE IN ISTORIC (Doar pentru Admini)
+            if (user != null) {
                 IstoricDAO istoricDAO = new IstoricDAO();
                 String numeComplet = user.getNume() + " " + user.getPrenume();
 
-                // Scriem in baza de date
-                istoricDAO.logAdminAction(user.getIdc(), numeComplet, "LOGOUT | Deconectare Admin");
+                if ("Admin".equals(user.getTipUtilizator())) {
+                    istoricDAO.logAdminAction(user.getIdc(), numeComplet, "LOGOUT | Deconectare Admin");
+                } else {
+                    // Logare Client
+                    istoricDAO.logClientAction(user.getIdc(), numeComplet, "LOGOUT | Deconectare Client");
+                }
             }
 
-            // 3. DISTRUGEM SESIUNEA (Aici se sterge userul din memoria serverului)
+            // DISTRUGEM SESIUNEA (Aici se sterge userul din memoria serverului)
             session.invalidate();
         }
 
-        // 4. Trimitem userul la pagina de login
+        // Trimitem userul la pagina de login
         response.sendRedirect("login.jsp");
     }
 }
