@@ -76,6 +76,11 @@
             ⚙️ Gestionează Stocuri
         </a>
 
+        <a href="admin-istoric" class="admin-btn" style="background-color: #17a2b8;">📋 Istoric Admin</a>
+
+        <a href="admin-istoric-client" class="admin-btn" style="background-color: #007bff;">
+            👥 Istoric Clienți
+        </a>
 
         <a href="logout" class="admin-btn btn-danger">
             🚪 Deconectare
