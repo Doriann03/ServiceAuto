@@ -3,71 +3,110 @@
 <html lang="ro">
 <head>
     <title>Înregistrare Cont</title>
-    <link rel="stylesheet" href="css/style.css">
+    <jsp:include page="includes/head.jsp" />
     <style>
-        /* ... stilurile raman la fel ... */
-        .register-container { width: 400px; margin: 50px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); font-family: Arial, sans-serif; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #333; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .alert-error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px; text-align: center; }
-        .btn-register { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        .btn-register:hover { background: #218838; }
-        .login-link { text-align: center; margin-top: 15px; font-size: 14px; }
+        body {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .register-card {
+            width: 100%;
+            max-width: 700px; /* Mai lat decat login */
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .register-header {
+            background-color: #28a745;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
     </style>
 </head>
-<body style="background-color: #f4f4f4;">
+<body>
 
-<div class="register-container">
-    <h2 style="text-align:center; color:#333;">Creează Cont</h2>
+<div class="card register-card">
+    <div class="register-header">
+        <h3 class="mb-0 fw-bold"><i class="fa-solid fa-user-plus me-2"></i> Creează Cont Nou</h3>
+        <p class="mb-0 small opacity-75">Completează formularul pentru a deveni client.</p>
+    </div>
 
-    <% String err = (String) request.getAttribute("errorMessage");
-        if (err != null) { %>
-    <div class="alert-error"><%= err %></div>
-    <% } %>
+    <div class="card-body p-4 bg-white">
+        <%
+            String err = (String) request.getAttribute("errorMessage");
+            if (err != null) {
+        %>
+        <div class="alert alert-danger text-center"><%= err %></div>
+        <% } %>
 
-    <form action="register" method="post">
-        <div class="form-group">
-            <label>Nume:</label>
-            <input type="text" name="nume" value="<%= request.getAttribute("oldNume") != null ? request.getAttribute("oldNume") : "" %>" required>
-        </div>
+        <form action="register" method="post">
 
-        <div class="form-group">
-            <label>Prenume:</label>
-            <input type="text" name="prenume" value="<%= request.getAttribute("oldPrenume") != null ? request.getAttribute("oldPrenume") : "" %>" required>
-        </div>
+            <h6 class="text-muted text-uppercase small fw-bold mb-3 border-bottom pb-2">Date Personale</h6>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Nume</label>
+                    <input type="text" name="nume" class="form-control" value="<%= request.getAttribute("oldNume") != null ? request.getAttribute("oldNume") : "" %>" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Prenume</label>
+                    <input type="text" name="prenume" class="form-control" value="<%= request.getAttribute("oldPrenume") != null ? request.getAttribute("oldPrenume") : "" %>" required>
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label>Username:</label>
-            <input type="text" name="username" value="<%= request.getAttribute("oldUser") != null ? request.getAttribute("oldUser") : "" %>" required placeholder="Alege un nume de utilizator">
-        </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Telefon</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fa-solid fa-phone"></i></span>
+                        <input type="text" name="telefon" class="form-control" value="<%= request.getAttribute("oldTel") != null ? request.getAttribute("oldTel") : "" %>" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
+                        <input type="email" name="email" class="form-control" value="<%= request.getAttribute("oldEmail") != null ? request.getAttribute("oldEmail") : "" %>" required>
+                    </div>
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label>Telefon:</label>
-            <input type="text" name="telefon" value="<%= request.getAttribute("oldTel") != null ? request.getAttribute("oldTel") : "" %>" required>
-        </div>
+            <h6 class="text-muted text-uppercase small fw-bold mb-3 border-bottom pb-2 mt-4">Securitate Cont</h6>
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text">@</span>
+                    <input type="text" name="username" class="form-control" value="<%= request.getAttribute("oldUser") != null ? request.getAttribute("oldUser") : "" %>" required placeholder="Alege un nume de utilizator">
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label>Email:</label>
-            <input type="email" name="email" value="<%= request.getAttribute("oldEmail") != null ? request.getAttribute("oldEmail") : "" %>" required>
-        </div>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Parolă</label>
+                    <input type="password" name="password" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Confirmă Parola</label>
+                    <input type="password" name="password_confirm" class="form-control" required>
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label>Parolă:</label>
-            <input type="password" name="password" required>
-        </div>
-
-        <div class="form-group">
-            <label>Confirmă Parola:</label>
-            <input type="password" name="password_confirm" required>
-        </div>
-
-        <button type="submit" class="btn-register">Înregistrează-te</button>
-    </form>
-
-    <div class="login-link">
-        Ai deja cont? <a href="login.jsp" style="color:#007bff; text-decoration:none;">Autentifică-te aici</a>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-success fw-bold py-2 shadow-sm">
+                    Înregistrează-te
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="card-footer text-center bg-light py-3">
+        Ai deja cont? <a href="login.jsp" class="fw-bold text-success text-decoration-none">Autentifică-te aici</a>
     </div>
 </div>
+
 </body>
 </html>
