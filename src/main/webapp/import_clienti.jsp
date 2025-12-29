@@ -6,95 +6,84 @@
     if (user == null || !"Admin".equals(user.getTipUtilizator())) {
         response.sendRedirect("login.jsp"); return;
     }
-
-    // Verificam daca avem date pregatite pentru preview
     List<Client> listaPreview = (List<Client>) session.getAttribute("listaImportPreview");
     boolean showPreview = (listaPreview != null && !listaPreview.isEmpty());
 %>
 <!DOCTYPE html>
-<html>
+<html lang="ro">
 <head>
     <title>Import Clienți</title>
-    <link rel="stylesheet" href="css/style.css">
-    <style>
-        .preview-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-        .preview-table th, .preview-table td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        .preview-table th { background-color: #e9ecef; }
-        .alert-box { padding: 10px; margin-bottom: 15px; border-radius: 5px; }
-        .alert-error { background-color: #f8d7da; color: #721c24; }
-    </style>
+    <jsp:include page="includes/head.jsp" />
 </head>
 <body>
-<div class="welcome-section" style="max-width: 900px;">
-    <h2>Importă Clienți din Excel</h2>
+<div class="d-flex">
+    <jsp:include page="includes/sidebar_admin.jsp" />
+    <div class="main-content flex-grow-1 bg-light">
+        <div class="container p-4">
 
-    <% if (request.getParameter("error") != null) { %>
-    <div class="alert-box alert-error">Eroare: <%= request.getParameter("error") %></div>
-    <% } %>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="dashboard_admin.jsp">Home</a></li>
+                        <li class="breadcrumb-item"><a href="admin-clienti">Clienți</a></li>
+                        <li class="breadcrumb-item active">Import</li>
+                    </ol>
+                </nav>
+            </div>
 
-    <% if (!showPreview) { %>
-    <div style="background: #f8f9fa; padding: 15px; border: 1px dashed #ccc; margin-bottom: 20px;">
-        <p>Încarcă un fișier <strong>.xlsx</strong> (fără ID pe prima coloană!)</p>
-        <strong>Structură Coloane:</strong><br>
-        Nume | Prenume | Telefon | Email | Username | Parolă | Rol
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="card card-dashboard border-0 shadow-lg">
+                        <div class="card-header bg-warning text-dark py-3">
+                            <h4 class="mb-0 fw-bold"><i class="fa-solid fa-users-viewfinder me-2"></i> Import Bază de Date Clienți</h4>
+                        </div>
+                        <div class="card-body p-4">
+
+                            <% if (request.getParameter("error") != null) { %>
+                            <div class="alert alert-danger"><i class="fa-solid fa-bug me-2"></i> <%= request.getParameter("error") %></div>
+                            <% } %>
+
+                            <% if (!showPreview) { %>
+                            <div class="alert alert-secondary mb-4">
+                                <strong>Structură Fișier:</strong> Nume | Prenume | Telefon | Email | Username | Parolă | Rol<br>
+                                <small class="text-muted">Nu includeți coloana ID. Parolele vor fi hash-uite automat la import.</small>
+                            </div>
+                            <form action="admin-import-clienti" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="step" value="preview">
+                                <div class="input-group mb-4">
+                                    <input type="file" name="fisierExcel" class="form-control" accept=".xlsx" required>
+                                    <button class="btn btn-warning" type="submit"><strong>Încarcă</strong></button>
+                                </div>
+                                <a href="clienti_admin.jsp" class="btn btn-link text-secondary">Înapoi la listă</a>
+                            </form>
+                            <% } else { %>
+                            <div class="table-responsive border rounded mb-4" style="max-height: 400px;">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead class="table-dark sticky-top">
+                                    <tr><th>#</th><th>Nume</th><th>Prenume</th><th>Telefon</th><th>Email</th><th>User</th><th>Rol</th></tr>
+                                    </thead>
+                                    <tbody>
+                                    <% int idx = 1; for (Client c : listaPreview) { %>
+                                    <tr>
+                                        <td><%= idx++ %></td><td><%= c.getNume() %></td><td><%= c.getPrenume() %></td>
+                                        <td><%= c.getTelefon() %></td><td><%= c.getEmail() %></td><td><%= c.getUsername() %></td><td><%= c.getTipUtilizator() %></td>
+                                    </tr>
+                                    <% } %>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-center gap-2">
+                                <form action="admin-import-clienti" method="post"><input type="hidden" name="step" value="save"><button type="submit" class="btn btn-success fw-bold">Importă</button></form>
+                                <form action="admin-import-clienti" method="post"><input type="hidden" name="step" value="cancel"><button type="submit" class="btn btn-danger fw-bold">Anulează</button></form>
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <form action="admin-import-clienti" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="step" value="preview">
-
-        <input type="file" name="fisierExcel" accept=".xlsx" required style="padding: 10px;">
-        <br><br>
-        <button type="submit" class="btn btn-success">🔎 Vizualizare Date</button>
-        <a href="clienti_admin.jsp" class="btn btn-danger">Înapoi</a>
-    </form>
-
-    <% } else { %>
-    <div style="background: #fff3cd; padding: 10px; border: 1px solid #ffeeba; color: #856404;">
-        ⚠️ <strong>Atenție!</strong> Datele de mai jos NU sunt salvate încă. Verifică dacă sunt corecte (fără coloane decalate).
-    </div>
-
-    <div style="max-height: 400px; overflow-y: auto;">
-        <table class="preview-table">
-            <thead>
-            <tr>
-                <th>#</th>
-                <th>Nume</th>
-                <th>Prenume</th>
-                <th>Telefon</th>
-                <th>Email</th>
-                <th>Username</th>
-                <th>Rol</th>
-            </tr>
-            </thead>
-            <tbody>
-            <% int idx = 1; for (Client c : listaPreview) { %>
-            <tr>
-                <td><%= idx++ %></td>
-                <td><%= c.getNume() %></td>
-                <td><%= c.getPrenume() %></td>
-                <td><%= c.getTelefon() %></td>
-                <td><%= c.getEmail() %></td>
-                <td><%= c.getUsername() %></td>
-                <td><%= c.getTipUtilizator() %></td>
-            </tr>
-            <% } %>
-            </tbody>
-        </table>
-    </div>
-    <br>
-
-    <div style="display: flex; gap: 10px; justify-content: center;">
-        <form action="admin-import-clienti" method="post">
-            <input type="hidden" name="step" value="save">
-            <button type="submit" class="btn btn-success" style="font-size: 18px;">✅ Confirmă Importul</button>
-        </form>
-
-        <form action="admin-import-clienti" method="post">
-            <input type="hidden" name="step" value="cancel">
-            <button type="submit" class="btn btn-danger">❌ Anulează / Încarcă altul</button>
-        </form>
-    </div>
-    <% } %>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

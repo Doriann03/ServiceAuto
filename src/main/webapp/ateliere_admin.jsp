@@ -14,12 +14,12 @@
 
     java.util.function.BiFunction<String, String, String> getSortLink = (colName, label) -> {
         String newDir = "ASC";
-        String arrow = "";
+        String icon = "<i class='fa-solid fa-sort text-muted ms-1 small'></i>";
         if (colName.equals(currentSort)) {
-            if ("ASC".equals(currentDir)) { newDir = "DESC"; arrow = " 🔼"; }
-            else { newDir = "ASC"; arrow = " 🔽"; }
+            if ("ASC".equals(currentDir)) { newDir = "DESC"; icon = "<i class='fa-solid fa-sort-up text-white ms-1'></i>"; }
+            else { newDir = "ASC"; icon = "<i class='fa-solid fa-sort-down text-white ms-1'></i>"; }
         }
-        return "<a href='admin-ateliere?sort=" + colName + "&dir=" + newDir + "' style='color:white; text-decoration:none;'>" + label + arrow + "</a>";
+        return "<a href='admin-ateliere?sort=" + colName + "&dir=" + newDir + "' class='text-decoration-none text-white d-block'>" + label + icon + "</a>";
     };
 %>
 
@@ -27,56 +27,84 @@
 <html lang="ro">
 <head>
     <title>Gestiune Ateliere</title>
-    <link rel="stylesheet" href="css/style.css">
-    <style>
-        .toolbar { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 5px; }
-        .table-admin th { background-color: #343a40; color: white; padding: 10px; }
-        .table-admin td { border: 1px solid #ddd; padding: 8px; }
-        .btn-add { background-color: #28a745; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; }
-    </style>
+    <jsp:include page="includes/head.jsp" />
 </head>
 <body>
-<div class="admin-home" style="max-width: 900px;">
-    <h2>🏢 Bază de date: Ateliere</h2>
-    <a href="dashboard_admin.jsp" class="btn">⬅ Înapoi</a>
-    <br><br>
+<div class="d-flex">
+    <jsp:include page="includes/sidebar_admin.jsp" />
+    <div class="main-content flex-grow-1 bg-light">
+        <div class="container-fluid p-4">
 
-    <div class="toolbar">
-        <form action="admin-ateliere" method="get">
-            <input type="text" name="search" placeholder="Nume sau adresă..." style="padding: 8px;">
-            <button type="submit" class="btn">🔍 Caută</button>
-            <a href="admin-ateliere" class="btn" style="background:#6c757d;">Reset</a>
-        </form>
-        <a href="admin-atelier-actions?action=new" class="btn-add">➕ Adaugă Atelier</a>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-dark fw-bold border-start border-4 border-info ps-3">
+                    Rețea Ateliere
+                </h2>
+                <a href="admin-atelier-actions?action=new" class="btn btn-info text-white shadow-sm fw-bold">
+                    <i class="fa-solid fa-plus me-1"></i> Adaugă Atelier
+                </a>
+            </div>
+
+            <div class="card card-dashboard mb-4 border-0">
+                <div class="card-body">
+                    <form action="admin-ateliere" method="get" class="row g-2 align-items-center">
+                        <div class="col-md-5">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                                <input type="text" name="search" class="form-control border-start-0" placeholder="Caută Nume sau Adresă...">
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-dark">Caută</button>
+                            <a href="admin-ateliere" class="btn btn-outline-secondary">Reset</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card card-dashboard border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                        <tr>
+                            <th class="ps-4"><%= getSortLink.apply("id", "ID") %></th>
+                            <th><%= getSortLink.apply("nume", "Denumire Atelier") %></th>
+                            <th><%= getSortLink.apply("adresa", "Locație / Adresă") %></th>
+                            <th class="text-end pe-4">Acțiuni</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <%
+                            List<Atelier> list = (List<Atelier>) request.getAttribute("listaAteliere");
+                            if (list != null && !list.isEmpty()) {
+                                for (Atelier a : list) {
+                        %>
+                        <tr>
+                            <td class="ps-4 text-muted fw-bold">#<%= a.getIda() %></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fa-solid fa-warehouse text-info me-2 fs-5"></i>
+                                    <span class="fw-bold"><%= a.getNume() %></span>
+                                </div>
+                            </td>
+                            <td><i class="fa-solid fa-location-dot text-danger me-1"></i> <%= a.getAdresa() %></td>
+                            <td class="text-end pe-4">
+                                <a href="admin-atelier-actions?action=edit&id=<%= a.getIda() %>" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <a href="admin-atelier-actions?action=delete&id=<%= a.getIda() %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Ștergi acest atelier?')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <% }} else { %> <tr><td colspan="4" class="text-center p-4">Nu există ateliere.</td></tr> <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
     </div>
-
-    <table class="table-admin" style="width:100%; border-collapse:collapse;">
-        <thead>
-        <tr>
-            <th><%= getSortLink.apply("id", "ID") %></th>
-            <th><%= getSortLink.apply("nume", "Denumire Atelier") %></th>
-            <th><%= getSortLink.apply("adresa", "Adresă") %></th>
-            <th>Acțiuni</th>
-        </tr>
-        </thead>
-        <tbody>
-        <%
-            List<Atelier> list = (List<Atelier>) request.getAttribute("listaAteliere");
-            if (list != null && !list.isEmpty()) {
-                for (Atelier a : list) {
-        %>
-        <tr>
-            <td><%= a.getIda() %></td>
-            <td><strong><%= a.getNume() %></strong></td>
-            <td><%= a.getAdresa() %></td>
-            <td>
-                <a href="admin-atelier-actions?action=edit&id=<%= a.getIda() %>" style="margin-right:10px;">✏️</a>
-                <a href="admin-atelier-actions?action=delete&id=<%= a.getIda() %>" onclick="return confirm('Ștergi acest atelier? Atenție: Dacă are angajați sau servicii, ștergerea poate eșua!');">🗑️</a>
-            </td>
-        </tr>
-        <% }} else { %> <tr><td colspan="4" style="text-align:center;">Nu există ateliere.</td></tr> <% } %>
-        </tbody>
-    </table>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

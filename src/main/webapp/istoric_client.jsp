@@ -3,73 +3,67 @@
 <%@ page import="ro.serviceauto.serviceauto.model.IstoricClient" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="ro">
 <head>
-    <title>Istoric Activitate Clienți</title>
-    <link rel="stylesheet" href="css/style.css">
-    <style>
-        .table-logs { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 20px; }
-        .table-logs th, .table-logs td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        .table-logs th { background-color: #007bff; color: white; } /* Albastru pt diferentiere de Admin */
-        .table-logs tr:nth-child(even) { background-color: #f9f9f9; }
-
-        /* Culori specifice Client */
-        .log-prog { color: #28a745; font-weight: bold; } /* Programare - Verde */
-        .log-reg { color: #e83e8c; font-weight: bold; }  /* Register - Roz */
-        .log-auth { color: #6f42c1; font-weight: bold; }  /* Login/Logout - Mov */
-        .log-other { color: #333; }
-    </style>
+    <title>Istoric Clienți</title>
+    <jsp:include page="includes/head.jsp" />
 </head>
 <body>
-<div class="admin-home" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
-    <h2>👥 Jurnal Activitate Clienți</h2>
+<div class="d-flex">
 
-    <div style="margin-bottom: 15px;">
-        <a href="dashboard_admin.jsp" class="btn">⬅ Înapoi la Panou</a>
-        <a href="admin-istoric" class="btn" style="background-color: #6c757d; float:right;">Vezi Istoric Admin ➡</a>
+    <jsp:include page="includes/sidebar_admin.jsp" />
+
+    <div class="main-content flex-grow-1 bg-light">
+        <div class="container-fluid p-4">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-dark fw-bold border-start border-4 border-primary ps-3">
+                    Audit Clienți
+                </h2>
+                <div class="btn-group">
+                    <a href="admin-istoric" class="btn btn-outline-info btn-sm">Vezi Istoric Admin</a>
+                </div>
+            </div>
+
+            <div class="card card-dashboard border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-primary text-white">
+                        <tr>
+                            <th class="ps-4 bg-primary text-white" style="width: 50px;">ID</th>
+                            <th class="bg-primary text-white">Data & Ora</th>
+                            <th class="bg-primary text-white">Client</th>
+                            <th class="bg-primary text-white">Acțiune</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <%
+                            List<IstoricClient> logs = (List<IstoricClient>) request.getAttribute("listaLogs");
+                            if (logs != null && !logs.isEmpty()) {
+                                for (IstoricClient log : logs) {
+                                    String actiune = log.getActiune();
+
+                                    String badgeHTML = "<span class='badge bg-secondary'>INFO</span>";
+                                    if (actiune.contains("PROGRAMARE")) badgeHTML = "<span class='badge bg-success'>PROGRAMARE</span>";
+                                    else if (actiune.contains("REGISTER")) badgeHTML = "<span class='badge bg-danger'>REGISTER</span>";
+                                    else if (actiune.contains("LOGIN")) badgeHTML = "<span class='badge bg-dark'>LOGIN</span>";
+                        %>
+                        <tr>
+                            <td class="ps-4 text-muted"><%= log.getId() %></td>
+                            <td><small class="text-secondary"><%= log.getDataOra() %></small></td>
+                            <td><strong><%= log.getNumeClient() %></strong></td>
+                            <td><%= badgeHTML %> <span class="ms-2"><%= actiune %></span></td>
+                        </tr>
+                        <% }} else { %>
+                        <tr><td colspan="4" class="text-center p-5 text-muted">Fără activitate.</td></tr>
+                        <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <table class="table-logs">
-        <thead>
-        <tr>
-            <th style="width: 50px;">ID</th>
-            <th style="width: 180px;">Data & Ora</th>
-            <th style="width: 200px;">Nume Client</th>
-            <th>Acțiune Detaliată</th>
-        </tr>
-        </thead>
-        <tbody>
-        <%
-            List<IstoricClient> logs = (List<IstoricClient>) request.getAttribute("listaLogs");
-
-            if (logs != null && !logs.isEmpty()) {
-                for (IstoricClient log : logs) {
-                    String actiune = log.getActiune();
-
-                    // Logica de culori CSS pt Client
-                    String cssClass = "log-other";
-                    if (actiune.contains("PROGRAMARE")) cssClass = "log-prog";
-                    else if (actiune.contains("REGISTER") || actiune.contains("Cont nou")) cssClass = "log-reg";
-                    else if (actiune.contains("LOGIN") || actiune.contains("LOGOUT")) cssClass = "log-auth";
-        %>
-        <tr>
-            <td style="color:#888;"><%= log.getId() %></td>
-            <td><%= log.getDataOra() %></td>
-            <td><strong><%= log.getNumeClient() %></strong></td>
-            <td class="<%= cssClass %>"><%= actiune %></td>
-        </tr>
-        <%
-            }
-        } else {
-        %>
-        <tr>
-            <td colspan="4" style="text-align:center; padding: 20px;">
-                Nu există activitate a clienților înregistrată.
-            </td>
-        </tr>
-        <% } %>
-        </tbody>
-    </table>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

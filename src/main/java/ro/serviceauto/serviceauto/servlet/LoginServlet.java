@@ -43,7 +43,7 @@ public class LoginServlet extends HttpServlet {
 
             if ("Admin".equals(client.getTipUtilizator())) {
                 istoricDAO.logAdminAction(client.getIdc(), numeComplet, "LOGIN | Autentificare Admin reușită");
-                response.sendRedirect("dashboard_admin.jsp");
+                response.sendRedirect("admin-dashboard");
             } else {
                 istoricDAO.logClientAction(client.getIdc(), numeComplet, "LOGIN | Client autentificat");
                 response.sendRedirect("dashboard_client.jsp");

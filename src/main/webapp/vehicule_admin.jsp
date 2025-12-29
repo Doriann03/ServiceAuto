@@ -4,33 +4,31 @@
 <%@ page import="ro.serviceauto.serviceauto.model.Client" %>
 
 <%
-    // 1. SECURITATE
+    // Securitate
     Client user = (Client) session.getAttribute("user");
     if (user == null || !"Admin".equals(user.getTipUtilizator())) {
         response.sendRedirect("login.jsp");
         return;
     }
 
-    // 2. LOGICA DE SORTARE
+    // Logica de Sortare (Pastram logica ta, doar o stilizam)
     String currentSort = (String) request.getAttribute("currentSort");
     String currentDir = (String) request.getAttribute("currentDir");
 
-    // Definim functia pentru link-uri de sortare
     java.util.function.BiFunction<String, String, String> getSortLink = (colName, label) -> {
         String newDir = "ASC";
-        String arrow = "";
+        String icon = "<i class='fa-solid fa-sort text-muted ms-1 small'></i>"; // Iconita default
 
-        // Verificam daca sortam deja dupa coloana asta
         if (colName.equals(currentSort)) {
             if ("ASC".equals(currentDir)) {
                 newDir = "DESC";
-                arrow = " 🔼";
+                icon = "<i class='fa-solid fa-sort-up text-white ms-1'></i>";
             } else {
                 newDir = "ASC";
-                arrow = " 🔽";
+                icon = "<i class='fa-solid fa-sort-down text-white ms-1'></i>";
             }
         }
-        return "<a href='admin-vehicule?sort=" + colName + "&dir=" + newDir + "' style='color:white; text-decoration:none;'>" + label + arrow + "</a>";
+        return "<a href='admin-vehicule?sort=" + colName + "&dir=" + newDir + "' class='text-decoration-none text-white d-block'>" + label + icon + "</a>";
     };
 %>
 
@@ -38,76 +36,110 @@
 <html lang="ro">
 <head>
     <title>Gestiune Vehicule</title>
-    <link rel="stylesheet" href="css/style.css">
-    <style>
-        .toolbar { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #ddd; }
-        .table-admin { width: 100%; border-collapse: collapse; }
-        .table-admin th { background-color: #343a40; color: white; padding: 10px; text-align: left; }
-        .table-admin td { border: 1px solid #ddd; padding: 8px; }
-        .btn-add { background-color: #28a745; color: white; padding: 8px; text-decoration: none; border-radius: 4px;}
-        .btn-pdf { background-color: #dc3545; color: white; padding: 8px; text-decoration: none; border-radius: 4px;}
-        .btn-xls { background-color: #17a2b8; color: white; padding: 8px; text-decoration: none; border-radius: 4px;}
-    </style>
+    <jsp:include page="includes/head.jsp" />
 </head>
 <body>
-<div class="admin-home" style="max-width: 1200px;">
-    <h2>🚗 Bază de date: Vehicule</h2>
-    <a href="dashboard_admin.jsp" class="btn">⬅ Înapoi</a>
-    <br><br>
+<div class="d-flex">
 
-    <div class="toolbar">
-        <form action="admin-vehicule" method="get">
-            <input type="text" name="search" placeholder="Nr, Marca sau Sasiu..." style="padding: 8px; width: 250px;">
-            <button type="submit" class="btn">🔍 Caută</button>
-            <a href="admin-vehicule" class="btn" style="background:#6c757d;">Reset</a>
-        </form>
-        <div style="display:flex; gap:10px;">
-            <a href="admin-vehicul-actions?action=new" class="btn-add">➕ Adaugă</a>
-            <a href="admin-export-vehicule?type=pdf" class="btn-pdf" target="_blank">📄 PDF</a>
-            <a href="admin-export-vehicule?type=excel" class="btn-xls">📊 Excel</a>
+    <jsp:include page="includes/sidebar_admin.jsp" />
+
+    <div class="main-content flex-grow-1 bg-light">
+        <div class="container-fluid p-4">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-dark fw-bold border-start border-4 border-primary ps-3">
+                    Flotă Vehicule
+                </h2>
+
+                <div class="btn-group shadow-sm">
+                    <a href="admin-vehicul-actions?action=new" class="btn btn-primary fw-bold">
+                        <i class="fa-solid fa-plus me-1"></i> Adaugă
+                    </a>
+                    <button type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-download me-1"></i> Export
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="admin-export-vehicule?type=pdf" target="_blank"><i class="fa-solid fa-file-pdf text-danger me-2"></i>PDF</a></li>
+                        <li><a class="dropdown-item" href="admin-export-vehicule?type=excel"><i class="fa-solid fa-file-excel text-success me-2"></i>Excel</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card card-dashboard mb-4 border-0">
+                <div class="card-body">
+                    <form action="admin-vehicule" method="get" class="row g-2 align-items-center">
+                        <div class="col-auto">
+                            <label class="fw-bold text-secondary">Filtrează:</label>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="fa-solid fa-car text-muted"></i></span>
+                                <input type="text" name="search" class="form-control border-start-0" placeholder="Caută Nr. Înmatriculare, Marcă sau Serie Șasiu...">
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-dark">Caută</button>
+                            <a href="admin-vehicule" class="btn btn-outline-secondary">Reset</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card card-dashboard border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th><%= getSortLink.apply("marca", "Marcă & Model") %></th>
+                            <th><%= getSortLink.apply("nr", "Nr. Înmatriculare") %></th>
+                            <th><%= getSortLink.apply("serie", "Serie Șasiu (VIN)") %></th>
+                            <th class="text-end pe-4">Acțiuni</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <%
+                            List<Vehicul> list = (List<Vehicul>) request.getAttribute("listaVehicule");
+                            if (list != null && !list.isEmpty()) {
+                                for (Vehicul v : list) {
+                        %>
+                        <tr>
+                            <td class="ps-4 text-muted fw-bold">#<%= v.getIdv() %></td>
+                            <td>
+                                <div class="fw-bold"><%= v.getMarca() %> <%= v.getModel() %></div>
+                                <small class="text-muted"><%= v.getTip() != null ? v.getTip() : "" %> <%= v.getMotor() != null ? "(" + v.getMotor() + ")" : "" %></small>
+                            </td>
+                            <td>
+                                <span class="badge bg-white text-dark border border-secondary fw-bold" style="font-family: monospace; font-size: 14px;">
+                                    <%= v.getNrInmatriculare() %>
+                                </span>
+                            </td>
+                            <td class="text-monospace text-secondary small">
+                                <%= v.getSerieSasiu() %>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="admin-vehicul-actions?action=edit&id=<%= v.getIdv() %>" class="btn btn-sm btn-outline-primary me-1" title="Editează">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <a href="admin-vehicul-actions?action=delete&id=<%= v.getIdv() %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Sigur doriți să ștergeți acest vehicul?')" title="Șterge">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <%
+                            }
+                        } else {
+                        %>
+                        <tr><td colspan="5" class="text-center p-5 text-muted">Nu există vehicule în baza de date.</td></tr>
+                        <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
-
-    <table class="table-admin">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th><%= getSortLink.apply("marca", "Marcă") %></th>
-            <th><%= getSortLink.apply("model", "Model") %></th>
-            <th><%= getSortLink.apply("nr", "Nr. Înmatriculare") %></th>
-            <th><%= getSortLink.apply("serie", "Serie Șasiu") %></th>
-            <th>Acțiuni</th>
-        </tr>
-        </thead>
-        <tbody>
-        <%
-            // PRELUAM LISTA DIN REQUEST
-            List<Vehicul> list = (List<Vehicul>) request.getAttribute("listaVehicule");
-
-            if (list != null && !list.isEmpty()) {
-                for (Vehicul v : list) {
-        %>
-        <tr>
-            <td><%= v.getIdv() %></td>
-            <td><%= v.getMarca() %></td>
-            <td><%= v.getModel() %></td>
-            <td><strong><%= v.getNrInmatriculare() %></strong></td>
-            <td><%= v.getSerieSasiu() %></td>
-            <td>
-                <a href="admin-vehicul-actions?action=edit&id=<%= v.getIdv() %>" style="text-decoration:none; font-size:1.2em;">✏️</a>
-                <a href="admin-vehicul-actions?action=delete&id=<%= v.getIdv() %>" onclick="return confirm('Ștergi vehiculul?');" style="text-decoration:none; font-size:1.2em; margin-left:10px;">🗑️</a>
-            </td>
-        </tr>
-        <%
-            }
-        } else {
-        %>
-        <tr>
-            <td colspan="6" style="text-align:center; padding:20px;">Nu există vehicule în baza de date.</td>
-        </tr>
-        <% } %>
-        </tbody>
-    </table>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
